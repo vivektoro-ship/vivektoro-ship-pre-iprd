@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>pre-iPRD — Design Audit Agent Workflow</title>
+<title>The 13 pre-iPRD Design Audit Agents</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -94,7 +94,7 @@
     backdrop-filter: blur(10px);
     padding: 7px 16px; border-radius: 999px; margin-bottom: 26px;
   }
-  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); animation: pulse 2s infinite; }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
   h1 {
     font-size: clamp(40px, 8vw, 76px); line-height: 1.02; margin: 0 0 20px;
@@ -224,11 +224,11 @@
 
 <header class="hero">
   <span class="badge"><span class="dot"></span>Engineering 2.0 · v6.0</span>
-  <h1>pre-iPRD<br><span class="grad">Design Audit Agent</span></h1>
-  <p class="lede">An orchestrator that drives twelve specialised sub-agents in a fixed order to audit, fix, and document a Figma flow before it ever reaches engineering.</p>
+  <h1>The 13 pre-iPRD<br><span class="grad">Design Audit Agents</span></h1>
+  <p class="lede">Paste a Figma link, say “pre iprd”, and thirteen agents take over — naming, aligning, token-binding, fact-checking, annotating and charting the whole flow until it’s ready for engineering.</p>
   <div class="meta-row">
-    <span class="chip"><b>Trigger</b> · Figma link + “pre iprd”</span>
-    <span class="chip"><b>Pauses</b> · only 3 permitted</span>
+    <span class="chip"><b>Trigger</b> · a Figma link + “pre iprd”</span>
+    <span class="chip"><b>Pauses</b> · only 3, ever</span>
     <span class="chip"><b>Writes</b> · main session only</span>
   </div>
   <div class="scroll-cue">Scroll<span></span></div>
@@ -237,33 +237,33 @@
 <div class="wrap">
 
   <section id="overview" class="reveal">
-    <p class="eyebrow">What it is</p>
-    <div class="sec-title">An orchestrator, not a lone auditor</div>
-    <p>The pre-iPRD Design Audit Agent does not do the audit work alone. It drives a pipeline of twelve specialised sub-agents in a fixed order. It is triggered whenever a designer pastes a Figma page or section link and asks for a “pre iprd” review in any phrasing — the pasted link by itself is a valid invocation. Once a single platform-confirmation gate is cleared, the agent runs the whole pipeline autonomously: no further questions, nothing skipped, no frame ever deleted, no API endpoint or screen ever invented, and every change written into Figma verified by reading it back. Throughout, it conforms strictly to one confirmed master design system and nothing else.</p>
+    <p class="eyebrow">The one-liner</p>
+    <div class="sec-title">One conductor, thirteen specialists</div>
+    <p>pre-iPRD doesn’t audit the design itself — it conducts thirteen specialist agents through a fixed sequence. A pasted Figma link and the words “pre iprd” are all it needs to begin. After you confirm the platform once, it runs end to end on its own: nothing skipped, no frame deleted, no endpoint or screen invented, and every change it makes read straight back to prove it landed. The whole run answers to a single master design system — and nothing else.</p>
   </section>
 
   <section id="model" class="reveal">
-    <p class="eyebrow">How it operates</p>
-    <div class="sec-title">Analyst + main-hands</div>
-    <p>The Figma <i>write</i> channel — the <span class="codepill">use_figma</span> plugin — is reachable <b>only from the main orchestrating session</b>. A write attempted from a spawned sub-agent serialises into plain text and halts the run. So the pipeline splits into two roles:</p>
+    <p class="eyebrow">Division of labour</p>
+    <div class="sec-title">Analysts plan. The main session acts.</div>
+    <p>Only the main session can write to Figma through the <span class="codepill">use_figma</span> plugin — a write attempted from a spawned agent turns into plain text and stalls the run. So the work splits cleanly in two:</p>
     <div class="two-col">
       <div class="card glow-blue">
-        <h3><span class="ico blue">⌕</span>Sub-agents — analysts</h3>
-        <p style="color:var(--muted);margin:0">Each is spawned with the file key, node id, and the relevant outputs from earlier steps. It <b style="color:var(--text)">reads</b> the design and returns findings and a fix-plan as structured text. It never writes.</p>
+        <h3><span class="ico blue">⌕</span>The analysts — every agent</h3>
+        <p style="color:var(--muted);margin:0">Spawned with the file key, node id and whatever earlier steps produced, each agent <b style="color:var(--text)">reads</b> the design and hands back findings plus a fix-plan. It never touches the file.</p>
       </div>
       <div class="card glow-green">
-        <h3><span class="ico green">✎</span>Main session — the hands</h3>
-        <p style="color:var(--muted);margin:0">Takes each plan and applies every Figma write it calls for, then <b style="color:var(--text)">verifies each write by an independent re-read</b>. If a sub-agent can’t even read Figma, the orchestrator runs its spec inline instead.</p>
+        <h3><span class="ico green">✎</span>The hands — main session</h3>
+        <p style="color:var(--muted);margin:0">It applies every write the plan calls for, then <b style="color:var(--text)">reads it straight back</b> to confirm it stuck. If an agent can’t even read Figma, the main session does that agent’s job itself.</p>
       </div>
     </div>
   </section>
 
   <section id="gate" class="reveal">
-    <p class="eyebrow">Step 0</p>
-    <div class="sec-title">Platform confirmation — the only gate</div>
+    <p class="eyebrow">Step 0 · the gate</p>
+    <div class="sec-title">First, pick the rulebook</div>
     <div class="gate">
-      <span class="tag">⛔ PAUSE FOR USER CONFIRMATION</span>
-      <p style="margin:12px 0 0">The orchestrator spawns the <span class="codepill">confirmation-agent</span>, which parses the URL, reads every frame, builds the frame inventory, and recommends the target platform. The orchestrator presents this and <b>waits for the user to confirm</b>. That confirmation selects the <b>one</b> master design system the rest of the run obeys — not a loose colour library, not a UI kit, and any other subscribed library is flagged as out of place.</p>
+      <span class="tag">⛔ PAUSES FOR YOUR CONFIRMATION</span>
+      <p style="margin:12px 0 0">The <span class="codepill">confirmation-agent</span> reads every frame, builds an inventory, and proposes which platform this is. You confirm with one word — and that choice locks the <b>single</b> master design system the entire run will obey. Any other subscribed library — a stray colour set, an old UI kit — gets flagged as out of place.</p>
     </div>
     <div class="table-wrap" style="margin-top:18px">
       <table>
@@ -281,94 +281,94 @@
   </section>
 
   <section id="pipeline" class="reveal">
-    <p class="eyebrow">The pipeline</p>
-    <div class="sec-title">Spawn analyst → apply writes → verify</div>
-    <p style="color:var(--muted)">After the gate, the orchestrator works through nine build-and-fix sub-agents in strict sequence. For each: spawn the agent, receive the plan, apply the writes, verify by re-read.</p>
+    <p class="eyebrow">The assembly line · 9 steps</p>
+    <div class="sec-title">Read → plan → apply → verify</div>
+    <p style="color:var(--muted)">With the rulebook chosen, nine build-and-fix agents run back to back. Each reads, hands over a plan, and the main session applies it and checks the result before the next begins.</p>
 
     <div class="timeline">
       <div class="fill" id="tlfill"></div>
       <div class="step"><div class="num">1</div>
-        <h4>File setup <span class="agent">file-creator-agent</span></h4>
-        <p>Rename the design page to “Ready for engineering”, create a separate “Design playground” page and a blue desktop thumbnail set as the file thumbnail, and import the master design system’s variable collections. (The file rename itself is flagged as a manual step.)</p>
+        <h4>Sets the file up <span class="agent">file-creator-agent</span></h4>
+        <p>Preps the file for work: renames the design page to “Ready for engineering”, adds a “Design playground” page with a branded thumbnail, and imports the design system’s variables so the agents that follow can bind real tokens. (Renaming the file itself stays a manual step.)</p>
       </div>
       <div class="step"><div class="num">2</div>
-        <h4>Frame naming <span class="agent">file-renamer-agent</span></h4>
-        <p>Rename every frame to the canonical convention — platform / area / feature / module / screen — state — ensuring each name is unique.</p>
+        <h4>Names every frame <span class="agent">file-renamer-agent</span></h4>
+        <p>Gives each frame a unique, canonical name — platform / area / feature / module / screen — state — so nothing is ambiguous downstream. An “Untitled” frame is a hard blocker.</p>
       </div>
       <div class="step"><div class="num">3</div>
-        <h4>Sectioning <span class="agent">section-splitter</span></h4>
-        <p>Create one Figma section per sub-flow, reparent loose frames into them, top-align and pad every screen per the section recipe, and confirm no frame spills outside its section.</p>
+        <h4>Sorts into sections <span class="agent">section-splitter</span></h4>
+        <p>Gathers loose screens into one named section per sub-flow, top-aligns and pads them on a shared baseline, and proves nothing spills outside its section.</p>
       </div>
       <div class="step"><div class="num">4</div>
-        <h4>Token conformance <span class="agent">token-matcher</span></h4>
-        <p>Snap every numeric value to the nearest token within ±4px and bind colour, text, shadow and spacing variables; set the correct master-system mode; deliberately skip colours inside component instances.</p>
+        <h4>Binds the tokens <span class="agent">token-matcher</span></h4>
+        <p>The heavy lifter. Snaps every off-grid value to the nearest token (±4px) and binds colours, text, shadows and spacing to real variables in the right platform mode — while leaving component instances, logos and illustrations untouched.</p>
       </div>
       <div class="step"><div class="num">5</div>
-        <h4>Data correctness <span class="agent">data-matcher</span></h4>
-        <p>Replace placeholder and lorem text; correct dates, values, percentages, signs, sums and internal logic; flag unknown business rules rather than guessing.</p>
+        <h4>Fixes the data <span class="agent">data-matcher</span></h4>
+        <p>Swaps out placeholder copy and corrects what’s wrong — dates, amounts, percentages, plus/minus signs, totals that don’t add up, and rows repeating the same value. Anything needing a real business rule is flagged, never guessed.</p>
       </div>
       <div class="step pause"><div class="num">6</div>
-        <h4>Edge &amp; missing states <span class="agent">edge-finder</span></h4>
-        <p>Clone the nearest existing frame into a “🆕 Proposed — &lt;feature&gt;” section and adapt it to the real missing state — never drawn from scratch. <b style="color:var(--warn)">⛔ Then the run pauses for the designer to review the proposed designs.</b></p>
+        <h4>Builds the missing states <span class="agent">edge-finder</span></h4>
+        <p>Finds the states a flow forgot — loading, empty, error, success — and builds them by cloning the nearest screen from real components into a “🆕 Proposed” section. <b style="color:var(--warn)">⛔ Then it pauses for the designer to keep or drop them.</b></p>
       </div>
       <div class="step"><div class="num">7</div>
-        <h4>Motion guide <span class="agent">animation-interaction-suggester</span></h4>
-        <p>Render a dedicated “🎞️ Interaction &amp; Animation Guide” frame placed above the first section.</p>
+        <h4>Specs the motion <span class="agent">animation-interaction-suggester</span></h4>
+        <p>Writes one reference frame covering transitions, micro-interactions and timing (page 300ms · modal 250ms · skeleton 1.5s) — guidance for engineering, never a change to the live screens.</p>
       </div>
       <div class="step"><div class="num">8</div>
-        <h4>Annotations <span class="agent">annotater-agent</span></h4>
-        <p>Write navigation, API, interaction and QA annotations onto every key frame, marking any unknown API call as TBD rather than inventing it.</p>
+        <h4>Annotates for handoff <span class="agent">annotater-agent</span></h4>
+        <p>Marks up every key frame with where it goes, what it calls, what each control does, and what QA should test. Unknown endpoints are labelled TBD, never invented.</p>
       </div>
       <div class="step"><div class="num">9</div>
-        <h4>Navigation map <span class="agent">redirection-helper</span></h4>
-        <p>Render a separate “🧭 Redirections &amp; Navigation” frame mapping every touch-point to its target, flagging any dead-end call-to-action.</p>
+        <h4>Maps the navigation <span class="agent">redirection-helper</span></h4>
+        <p>Builds one reference frame listing every touch-point — buttons, links, filters, actions, back — and where each leads, calling out any dead-end CTA.</p>
       </div>
     </div>
   </section>
 
   <section id="review" class="reveal">
     <p class="eyebrow">Quality gate</p>
-    <div class="sec-title">The reviewer — loop until 100% green</div>
-    <p>The orchestrator spawns the read-only <span class="codepill">reviewer</span>. It audits the design screen by screen and frame by frame across every dimension at once — naming, sectioning and alignment, tokens and mode, data, maths and logic, edge states, annotations and redirections — and returns a per-frame pass/fail scorecard.</p>
+    <div class="sec-title">The reviewer — loop until it’s all green</div>
+    <p>A read-only <span class="codepill">reviewer</span> now checks every frame against every dimension at once — naming, layout, tokens, data, edge states, annotations, navigation — and returns a per-frame pass/fail scorecard.</p>
     <div class="two-col">
       <div class="card glow-green">
-        <h3><span class="ico green">✓</span>All green</h3>
-        <p style="color:var(--muted);margin:0">The run proceeds to the flow chart.</p>
+        <h3><span class="ico green">✓</span>Everything passes</h3>
+        <p style="color:var(--muted);margin:0">Clear to build the flow chart.</p>
       </div>
       <div class="card glow-warn">
-        <h3><span class="ico warn">↻</span>Any failure</h3>
-        <p style="color:var(--muted);margin:0">The reviewer names the exact owning agent and frames. The orchestrator re-spawns that agent on just those frames, re-applies the writes, and re-runs the reviewer. <b style="color:var(--text)">This loops until the scorecard is 100% green.</b> The flow chart is forbidden from running before then.</p>
+        <h3><span class="ico warn">↻</span>Something fails</h3>
+        <p style="color:var(--muted);margin:0">The reviewer points to the exact agent and frames at fault. Those re-run, the writes re-apply, and the review runs again — <b style="color:var(--text)">looping until the scorecard is fully green</b>. The flow chart can’t start before then.</p>
       </div>
     </div>
   </section>
 
   <section id="flow" class="reveal">
     <p class="eyebrow">Step 12</p>
-    <div class="sec-title">The flow chart — only after green</div>
-    <p>The orchestrator spawns the <span class="codepill">user-flow-creator</span>, which returns a node-and-edge data model plus a build spec. The chart is then built <b>in the main session</b> through the Figma write channel (it cannot be drawn from a sub-agent). The result is a modern, neat, interaction-level user-flow chart with no crossing lines, API badges on relevant edges, and spacing bound to design-system variables. Self-check: no connector line over a tile, no tile overlapping another, crossings minimised, and every screen present.</p>
+    <div class="sec-title">The flow chart — once it’s green</div>
+    <p>The <span class="codepill">user-flow-creator</span> returns a node-and-edge model and a build spec; the main session draws the chart through Figma. The output is a clean, interaction-level map — no crossing lines, API badges on the right edges, spacing bound to design-system variables — and it’s checked so no line sits on a tile, no tiles overlap, and every screen is present.</p>
   </section>
 
   <section id="report" class="reveal">
     <p class="eyebrow">Step 13</p>
     <div class="sec-title">Self-check &amp; report</div>
-    <p>Finally the orchestrator spawns the <span class="codepill">self-check-reporter</span> (Figma-read + Slack). It runs the final verification pass — frame names, zero section spill and proper padding, master-system conformance, and a clean flow chart — and emits an audit report structured as <b>found · fixed · needs human call</b>. It then posts a bulletin to Slack <span class="codepill">#pre-iprd-test</span>: verdict, counts, skip rate, and deep-links to the deliverables — owners named by role only, in plain text, never as images.</p>
+    <p>Last, the <span class="codepill">self-check-reporter</span> runs a final sweep — names, spacing, token conformance, a clean chart — and writes up <b>what it found, what it fixed, and what still needs a human</b>. It posts the summary to Slack <span class="codepill">#pre-iprd-test</span> with deep-links to every deliverable, owners named by role, text only.</p>
   </section>
 
   <section id="rules" class="reveal">
     <p class="eyebrow">Always true</p>
     <div class="sec-title">The standing rules</div>
     <ul class="rules">
-      <li><b>Sub-agents analyse; the main session writes</b> — and verifies every write by reading it back (a read in the same call right after a create/move is stale, so it’s done separately).</li>
-      <li><b>The flow chart only runs after a fully green review.</b></li>
-      <li><b>No mid-run questions after Step 0</b>, and nothing may be skipped — a skipped or partial step counts as a defect.</li>
-      <li><b>Frames are never deleted</b> — they are hidden by setting them invisible; frames are reparented before any section is removed (removing a section deletes its children).</li>
-      <li><b>Endpoints and screens are never invented</b> — unknowns are marked TBD and missing screens are cloned, never drawn.</li>
-      <li><b>One master design system per run</b>, with only three permitted pauses: the platform confirm, a missing-master-system approval, and the edge-finder designer-review gate.</li>
+      <li><b>Agents read and plan; only the main session writes</b> — and it reads every change back to be sure it landed.</li>
+      <li><b>The flow chart waits for a fully green review.</b></li>
+      <li><b>After Step 0, no more questions</b> — and no step is ever skipped.</li>
+      <li><b>Frames are never deleted</b>, only hidden; a section is emptied before it’s removed.</li>
+      <li><b>Nothing is invented</b> — unknowns are marked TBD, and missing screens are cloned, not drawn.</li>
+      <li><b>One master design system per run</b>, with just three places it’s ever allowed to pause.</li>
     </ul>
   </section>
 
   <footer>
-    pre-iPRD Design Audit Agent · v6.0 · source <code>~/.claude/agents/pre-iprd.md</code>
+    The 13 pre-iPRD Design Audit Agents · v6.0 · source <code>~/.claude/agents/pre-iprd.md</code>
   </footer>
 
 </div>
