@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pre-iPRD — Design Audit Agent Workflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090e;
+    --bg-2: #0c1018;
+    --panel: rgba(22, 28, 38, 0.6);
+    --panel-solid: #141a24;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+    --text: #eef3f9;
+    --muted: #97a4b4;
+    --accent: #7c9cff;
+    --accent-2: #5ce0a8;
+    --warn: #ffc879;
+    --pink: #f08cd0;
+    --violet: #b08cff;
+    --radius: 18px;
+    --maxw: 940px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+
+  /* ===== Animated gradient mesh background ===== */
+  .mesh {
+    position: fixed; inset: 0; z-index: -2;
+    background:
+      radial-gradient(40% 35% at 18% 12%, rgba(124,156,255,0.22), transparent 60%),
+      radial-gradient(35% 30% at 82% 8%,  rgba(92,224,168,0.18), transparent 60%),
+      radial-gradient(45% 40% at 75% 75%, rgba(176,140,255,0.16), transparent 60%),
+      radial-gradient(40% 35% at 12% 82%, rgba(240,140,208,0.12), transparent 60%);
+    filter: blur(20px);
+    animation: drift 22s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(-2%,2%,0) scale(1.08); }
+    100% { transform: translate3d(2%,-1%,0) scale(1.04); }
+  }
+  .grain {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 140px; }
+
+  /* ===== Sticky progress rail ===== */
+  .rail {
+    position: fixed; left: max(20px, calc((100vw - var(--maxw))/2 - 64px)); top: 50%;
+    transform: translateY(-50%); z-index: 50;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .rail a {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    transition: all .35s cubic-bezier(.2,.8,.2,1);
+    position: relative;
+  }
+  .rail a.active { background: var(--accent); box-shadow: 0 0 0 5px rgba(124,156,255,.18); transform: scale(1.25); }
+  .rail a::after {
+    content: attr(data-label);
+    position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    white-space: nowrap; opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .rail a:hover::after { opacity: 1; }
+  @media (max-width: 1180px) { .rail { display: none; } }
+
+  /* ===== Hero ===== */
+  header.hero { text-align: center; padding: 130px 24px 70px; position: relative; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    background: rgba(124,156,255,0.06);
+    backdrop-filter: blur(10px);
+    padding: 7px 16px; border-radius: 999px; margin-bottom: 26px;
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  h1 {
+    font-size: clamp(40px, 8vw, 76px); line-height: 1.02; margin: 0 0 20px;
+    font-weight: 900; letter-spacing: -0.035em;
+  }
+  h1 .grad {
+    background: linear-gradient(100deg, var(--accent) 0%, var(--violet) 45%, var(--accent-2) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: 200% center; } }
+  .lede { max-width: 660px; margin: 0 auto; color: var(--muted); font-size: 19px; }
+  .meta-row { margin-top: 34px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .chip {
+    font-size: 13px; color: var(--muted);
+    background: var(--panel); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px;
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+  .scroll-cue { margin-top: 56px; color: var(--muted); font-size: 12px; letter-spacing:.2em; text-transform:uppercase; }
+  .scroll-cue span { display:block; margin: 10px auto 0; width: 1px; height: 36px; background: linear-gradient(var(--accent), transparent); animation: cue 1.8s ease-in-out infinite; }
+  @keyframes cue { 0%,100%{opacity:.3; transform:scaleY(.6);} 50%{opacity:1; transform:scaleY(1);} }
+
+  /* ===== Reveal animation ===== */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ===== Sections ===== */
+  section { margin-top: 92px; scroll-margin-top: 40px; }
+  .eyebrow { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent-2); margin: 0 0 8px; font-weight: 700; }
+  .sec-title { font-size: clamp(24px, 4vw, 32px); font-weight: 800; margin: 0 0 22px; letter-spacing: -0.02em; }
+  p { margin: 0 0 16px; }
+
+  /* ===== Glass cards ===== */
+  .card {
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px 28px; margin-bottom: 16px;
+    position: relative; overflow: hidden;
+    transition: transform .4s cubic-bezier(.2,.8,.2,1), border-color .4s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: var(--line-strong); }
+  .card h3 { margin: 0 0 8px; font-size: 18px; display:flex; align-items:center; gap:10px; }
+  .card .ico { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 16px; flex: none; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+  .card.glow-blue::before, .card.glow-green::before, .card.glow-warn::before {
+    content:""; position:absolute; top:0; left:0; width:100%; height:3px;
+  }
+  .card.glow-blue::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .card.glow-green::before { background: linear-gradient(90deg, var(--accent-2), transparent); }
+  .card.glow-warn::before { background: linear-gradient(90deg, var(--warn), transparent); }
+  .ico.blue { background: rgba(124,156,255,.16); color: var(--accent); }
+  .ico.green { background: rgba(92,224,168,.16); color: var(--accent-2); }
+  .ico.warn { background: rgba(255,200,121,.16); color: var(--warn); }
+
+  /* ===== Gate callout ===== */
+  .gate {
+    background: linear-gradient(135deg, rgba(255,200,121,.10), rgba(240,140,208,.05));
+    border: 1px solid rgba(255,200,121,.25);
+    border-radius: var(--radius); padding: 26px 28px;
+  }
+  .gate .tag { color: var(--warn); font-weight: 800; font-size: 13px; letter-spacing: .12em; display:flex; align-items:center; gap:8px; }
+
+  /* ===== Table ===== */
+  .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; backdrop-filter: blur(12px); background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  th { background: rgba(255,255,255,0.03); color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .25s; }
+  tbody tr:hover { background: rgba(124,156,255,0.05); }
+  td code, .codepill { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); background: rgba(124,156,255,.1); padding: 3px 8px; border-radius: 7px; }
+
+  /* ===== Timeline ===== */
+  .timeline { position: relative; margin-top: 12px; padding-left: 6px; }
+  .timeline::before { content:""; position:absolute; left: 26px; top: 14px; bottom: 14px; width: 2px; background: rgba(255,255,255,0.1); }
+  .timeline .fill { position:absolute; left: 26px; top: 14px; width: 2px; background: linear-gradient(var(--accent), var(--violet), var(--accent-2)); height: 0; transition: height .15s linear; border-radius: 2px; box-shadow: 0 0 12px rgba(124,156,255,.5); }
+  .step { position: relative; padding: 0 0 30px 74px; }
+  .step .num {
+    position: absolute; left: 0; top: 0; width: 42px; height: 42px; border-radius: 50%;
+    background: var(--bg-2); border: 2px solid var(--line-strong); color: var(--muted);
+    font-weight: 800; display: grid; place-items: center; font-size: 15px; z-index: 1;
+    transition: all .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .step.in .num { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 5px rgba(124,156,255,.12); }
+  .step h4 { margin: 8px 0 5px; font-size: 17px; font-weight: 700; }
+  .step h4 .agent { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); background: rgba(124,156,255,.1); padding: 2px 8px; border-radius: 6px; margin-left: 6px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  .step.pause .num { border-color: var(--warn); color: var(--warn); }
+  .step.pause.in .num { box-shadow: 0 0 0 5px rgba(255,200,121,.14); }
+
+  /* ===== Rules ===== */
+  ul.rules { list-style: none; padding: 0; margin: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; backdrop-filter: blur(12px); background: var(--panel); }
+  ul.rules li { padding: 16px 20px 16px 52px; position: relative; border-bottom: 1px solid var(--line); color: var(--muted); transition: background .25s; }
+  ul.rules li:hover { background: rgba(92,224,168,0.05); }
+  ul.rules li:last-child { border-bottom: none; }
+  ul.rules li::before { content: "✓"; position: absolute; left: 20px; top: 16px; color: var(--accent-2); font-weight: 800; }
+  ul.rules li b { color: var(--text); }
+
+  footer { margin-top: 100px; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 32px; }
+  footer code { color: var(--accent); font-family: "JetBrains Mono", monospace; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mesh, h1 .grad, .badge .dot, .scroll-cue span { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="mesh"></div>
+<div class="grain"></div>
+
+<nav class="rail">
+  <a href="#overview" data-label="Overview"></a>
+  <a href="#model" data-label="Operating model"></a>
+  <a href="#gate" data-label="Step 0 · Gate"></a>
+  <a href="#pipeline" data-label="Pipeline"></a>
+  <a href="#review" data-label="Review gate"></a>
+  <a href="#flow" data-label="Flow chart"></a>
+  <a href="#report" data-label="Report"></a>
+  <a href="#rules" data-label="Standing rules"></a>
+</nav>
+
+<header class="hero">
+  <span class="badge"><span class="dot"></span>Engineering 2.0 · v6.0</span>
+  <h1>pre-iPRD<br><span class="grad">Design Audit Agent</span></h1>
+  <p class="lede">An orchestrator that drives twelve specialised sub-agents in a fixed order to audit, fix, and document a Figma flow before it ever reaches engineering.</p>
+  <div class="meta-row">
+    <span class="chip"><b>Trigger</b> · Figma link + “pre iprd”</span>
+    <span class="chip"><b>Pauses</b> · only 3 permitted</span>
+    <span class="chip"><b>Writes</b> · main session only</span>
+  </div>
+  <div class="scroll-cue">Scroll<span></span></div>
+</header>
+
+<div class="wrap">
+
+  <section id="overview" class="reveal">
+    <p class="eyebrow">What it is</p>
+    <div class="sec-title">An orchestrator, not a lone auditor</div>
+    <p>The pre-iPRD Design Audit Agent does not do the audit work alone. It drives a pipeline of twelve specialised sub-agents in a fixed order. It is triggered whenever a designer pastes a Figma page or section link and asks for a “pre iprd” review in any phrasing — the pasted link by itself is a valid invocation. Once a single platform-confirmation gate is cleared, the agent runs the whole pipeline autonomously: no further questions, nothing skipped, no frame ever deleted, no API endpoint or screen ever invented, and every change written into Figma verified by reading it back. Throughout, it conforms strictly to one confirmed master design system and nothing else.</p>
+  </section>
+
+  <section id="model" class="reveal">
+    <p class="eyebrow">How it operates</p>
+    <div class="sec-title">Analyst + main-hands</div>
+    <p>The Figma <i>write</i> channel — the <span class="codepill">use_figma</span> plugin — is reachable <b>only from the main orchestrating session</b>. A write attempted from a spawned sub-agent serialises into plain text and halts the run. So the pipeline splits into two roles:</p>
+    <div class="two-col">
+      <div class="card glow-blue">
+        <h3><span class="ico blue">⌕</span>Sub-agents — analysts</h3>
+        <p style="color:var(--muted);margin:0">Each is spawned with the file key, node id, and the relevant outputs from earlier steps. It <b style="color:var(--text)">reads</b> the design and returns findings and a fix-plan as structured text. It never writes.</p>
+      </div>
+      <div class="card glow-green">
+        <h3><span class="ico green">✎</span>Main session — the hands</h3>
+        <p style="color:var(--muted);margin:0">Takes each plan and applies every Figma write it calls for, then <b style="color:var(--text)">verifies each write by an independent re-read</b>. If a sub-agent can’t even read Figma, the orchestrator runs its spec inline instead.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="gate" class="reveal">
+    <p class="eyebrow">Step 0</p>
+    <div class="sec-title">Platform confirmation — the only gate</div>
+    <div class="gate">
+      <span class="tag">⛔ PAUSE FOR USER CONFIRMATION</span>
+      <p style="margin:12px 0 0">The orchestrator spawns the <span class="codepill">confirmation-agent</span>, which parses the URL, reads every frame, builds the frame inventory, and recommends the target platform. The orchestrator presents this and <b>waits for the user to confirm</b>. That confirmation selects the <b>one</b> master design system the rest of the run obeys — not a loose colour library, not a UI kit, and any other subscribed library is flagged as out of place.</p>
+    </div>
+    <div class="table-wrap" style="margin-top:18px">
+      <table>
+        <thead><tr><th>Platform</th><th>Master design system</th></tr></thead>
+        <tbody>
+          <tr><td>Admin</td><td><code>Master Design System</code></td></tr>
+          <tr><td>Partner App</td><td><code>Oro Partner App – Master</code></td></tr>
+          <tr><td>Customer / Cx App</td><td><code>Oro Safe – Customer WebApp</code></td></tr>
+          <tr><td>Website / Money Landing</td><td><code>⚱️ Oro Money Landing</code></td></tr>
+          <tr><td>Generic web</td><td><code>Web Master Design System</code></td></tr>
+          <tr><td>Generic mobile</td><td><code>Mobile Master Design system</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="pipeline" class="reveal">
+    <p class="eyebrow">The pipeline</p>
+    <div class="sec-title">Spawn analyst → apply writes → verify</div>
+    <p style="color:var(--muted)">After the gate, the orchestrator works through nine build-and-fix sub-agents in strict sequence. For each: spawn the agent, receive the plan, apply the writes, verify by re-read.</p>
+
+    <div class="timeline">
+      <div class="fill" id="tlfill"></div>
+      <div class="step"><div class="num">1</div>
+        <h4>File setup <span class="agent">file-creator-agent</span></h4>
+        <p>Rename the design page to “Ready for engineering”, create a separate “Design playground” page and a blue desktop thumbnail set as the file thumbnail, and import the master design system’s variable collections. (The file rename itself is flagged as a manual step.)</p>
+      </div>
+      <div class="step"><div class="num">2</div>
+        <h4>Frame naming <span class="agent">file-renamer-agent</span></h4>
+        <p>Rename every frame to the canonical convention — platform / area / feature / module / screen — state — ensuring each name is unique.</p>
+      </div>
+      <div class="step"><div class="num">3</div>
+        <h4>Sectioning <span class="agent">section-splitter</span></h4>
+        <p>Create one Figma section per sub-flow, reparent loose frames into them, top-align and pad every screen per the section recipe, and confirm no frame spills outside its section.</p>
+      </div>
+      <div class="step"><div class="num">4</div>
+        <h4>Token conformance <span class="agent">token-matcher</span></h4>
+        <p>Snap every numeric value to the nearest token within ±4px and bind colour, text, shadow and spacing variables; set the correct master-system mode; deliberately skip colours inside component instances.</p>
+      </div>
+      <div class="step"><div class="num">5</div>
+        <h4>Data correctness <span class="agent">data-matcher</span></h4>
+        <p>Replace placeholder and lorem text; correct dates, values, percentages, signs, sums and internal logic; flag unknown business rules rather than guessing.</p>
+      </div>
+      <div class="step pause"><div class="num">6</div>
+        <h4>Edge &amp; missing states <span class="agent">edge-finder</span></h4>
+        <p>Clone the nearest existing frame into a “🆕 Proposed — &lt;feature&gt;” section and adapt it to the real missing state — never drawn from scratch. <b style="color:var(--warn)">⛔ Then the run pauses for the designer to review the proposed designs.</b></p>
+      </div>
+      <div class="step"><div class="num">7</div>
+        <h4>Motion guide <span class="agent">animation-interaction-suggester</span></h4>
+        <p>Render a dedicated “🎞️ Interaction &amp; Animation Guide” frame placed above the first section.</p>
+      </div>
+      <div class="step"><div class="num">8</div>
+        <h4>Annotations <span class="agent">annotater-agent</span></h4>
+        <p>Write navigation, API, interaction and QA annotations onto every key frame, marking any unknown API call as TBD rather than inventing it.</p>
+      </div>
+      <div class="step"><div class="num">9</div>
+        <h4>Navigation map <span class="agent">redirection-helper</span></h4>
+        <p>Render a separate “🧭 Redirections &amp; Navigation” frame mapping every touch-point to its target, flagging any dead-end call-to-action.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="review" class="reveal">
+    <p class="eyebrow">Quality gate</p>
+    <div class="sec-title">The reviewer — loop until 100% green</div>
+    <p>The orchestrator spawns the read-only <span class="codepill">reviewer</span>. It audits the design screen by screen and frame by frame across every dimension at once — naming, sectioning and alignment, tokens and mode, data, maths and logic, edge states, annotations and redirections — and returns a per-frame pass/fail scorecard.</p>
+    <div class="two-col">
+      <div class="card glow-green">
+        <h3><span class="ico green">✓</span>All green</h3>
+        <p style="color:var(--muted);margin:0">The run proceeds to the flow chart.</p>
+      </div>
+      <div class="card glow-warn">
+        <h3><span class="ico warn">↻</span>Any failure</h3>
+        <p style="color:var(--muted);margin:0">The reviewer names the exact owning agent and frames. The orchestrator re-spawns that agent on just those frames, re-applies the writes, and re-runs the reviewer. <b style="color:var(--text)">This loops until the scorecard is 100% green.</b> The flow chart is forbidden from running before then.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow" class="reveal">
+    <p class="eyebrow">Step 12</p>
+    <div class="sec-title">The flow chart — only after green</div>
+    <p>The orchestrator spawns the <span class="codepill">user-flow-creator</span>, which returns a node-and-edge data model plus a build spec. The chart is then built <b>in the main session</b> through the Figma write channel (it cannot be drawn from a sub-agent). The result is a modern, neat, interaction-level user-flow chart with no crossing lines, API badges on relevant edges, and spacing bound to design-system variables. Self-check: no connector line over a tile, no tile overlapping another, crossings minimised, and every screen present.</p>
+  </section>
+
+  <section id="report" class="reveal">
+    <p class="eyebrow">Step 13</p>
+    <div class="sec-title">Self-check &amp; report</div>
+    <p>Finally the orchestrator spawns the <span class="codepill">self-check-reporter</span> (Figma-read + Slack). It runs the final verification pass — frame names, zero section spill and proper padding, master-system conformance, and a clean flow chart — and emits an audit report structured as <b>found · fixed · needs human call</b>. It then posts a bulletin to Slack <span class="codepill">#pre-iprd-test</span>: verdict, counts, skip rate, and deep-links to the deliverables — owners named by role only, in plain text, never as images.</p>
+  </section>
+
+  <section id="rules" class="reveal">
+    <p class="eyebrow">Always true</p>
+    <div class="sec-title">The standing rules</div>
+    <ul class="rules">
+      <li><b>Sub-agents analyse; the main session writes</b> — and verifies every write by reading it back (a read in the same call right after a create/move is stale, so it’s done separately).</li>
+      <li><b>The flow chart only runs after a fully green review.</b></li>
+      <li><b>No mid-run questions after Step 0</b>, and nothing may be skipped — a skipped or partial step counts as a defect.</li>
+      <li><b>Frames are never deleted</b> — they are hidden by setting them invisible; frames are reparented before any section is removed (removing a section deletes its children).</li>
+      <li><b>Endpoints and screens are never invented</b> — unknowns are marked TBD and missing screens are cloned, never drawn.</li>
+      <li><b>One master design system per run</b>, with only three permitted pauses: the platform confirm, a missing-master-system approval, and the edge-finder designer-review gate.</li>
+    </ul>
+  </section>
+
+  <footer>
+    pre-iPRD Design Audit Agent · v6.0 · source <code>~/.claude/agents/pre-iprd.md</code>
+  </footer>
+
+</div>
+
+<script>
+  // Scroll reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal, .step').forEach(el => io.observe(el));
+
+  // Timeline fill + active rail dot
+  const fill = document.getElementById('tlfill');
+  const timeline = document.querySelector('.timeline');
+  const sections = [...document.querySelectorAll('section[id]')];
+  const dots = [...document.querySelectorAll('.rail a')];
+
+  function onScroll() {
+    if (timeline && fill) {
+      const r = timeline.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const total = r.height;
+      const passed = Math.min(Math.max(vh * 0.5 - r.top, 0), total);
+      fill.style.height = passed + 'px';
+    }
+    let activeIdx = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top < window.innerHeight * 0.4) activeIdx = i; });
+    dots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
