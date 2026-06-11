@@ -3,77 +3,150 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>pre-iPRD — Design Audit Agent · Leo Edition</title>
+<title>pre-iPRD — Design Audit Agent Workflow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07090e; --bg-2: #0c1018;
+    --bg: #07090e;
+    --bg-2: #0c1018;
     --panel: rgba(22, 28, 38, 0.6);
-    --line: rgba(255,255,255,0.08); --line-strong: rgba(255,255,255,0.14);
-    --text: #eef3f9; --muted: #97a4b4;
-    --accent: #7c9cff; --accent-2: #5ce0a8; --warn: #ffc879; --pink: #f08cd0; --violet: #b08cff; --red: #ff8585;
-    --radius: 18px; --maxw: 940px;
+    --panel-solid: #141a24;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+    --text: #eef3f9;
+    --muted: #97a4b4;
+    --accent: #7c9cff;
+    --accent-2: #5ce0a8;
+    --warn: #ffc879;
+    --pink: #f08cd0;
+    --violet: #b08cff;
+    --radius: 18px;
+    --maxw: 940px;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; background: var(--bg); color: var(--text); font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
   .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
 
-  .mesh { position: fixed; inset: 0; z-index: -2;
+  /* ===== Animated gradient mesh background ===== */
+  .mesh {
+    position: fixed; inset: 0; z-index: -2;
     background:
       radial-gradient(40% 35% at 18% 12%, rgba(124,156,255,0.22), transparent 60%),
       radial-gradient(35% 30% at 82% 8%,  rgba(92,224,168,0.18), transparent 60%),
       radial-gradient(45% 40% at 75% 75%, rgba(176,140,255,0.16), transparent 60%),
       radial-gradient(40% 35% at 12% 82%, rgba(240,140,208,0.12), transparent 60%);
-    filter: blur(20px); animation: drift 22s ease-in-out infinite alternate; }
-  @keyframes drift { 0%{transform:translate3d(0,0,0) scale(1);} 50%{transform:translate3d(-2%,2%,0) scale(1.08);} 100%{transform:translate3d(2%,-1%,0) scale(1.04);} }
-  .grain { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .035;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    filter: blur(20px);
+    animation: drift 22s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(-2%,2%,0) scale(1.08); }
+    100% { transform: translate3d(2%,-1%,0) scale(1.04); }
+  }
+  .grain {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
-  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 120px; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 140px; }
 
-  .rail { position: fixed; left: max(20px, calc((100vw - var(--maxw))/2 - 64px)); top: 50%; transform: translateY(-50%); z-index: 50; display: flex; flex-direction: column; gap: 14px; }
-  .rail a { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all .35s cubic-bezier(.2,.8,.2,1); position: relative; }
+  /* ===== Sticky progress rail ===== */
+  .rail {
+    position: fixed; left: max(20px, calc((100vw - var(--maxw))/2 - 64px)); top: 50%;
+    transform: translateY(-50%); z-index: 50;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .rail a {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    transition: all .35s cubic-bezier(.2,.8,.2,1);
+    position: relative;
+  }
   .rail a.active { background: var(--accent); box-shadow: 0 0 0 5px rgba(124,156,255,.18); transform: scale(1.25); }
-  .rail a::after { content: attr(data-label); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; opacity: 0; transition: opacity .25s; pointer-events: none; }
+  .rail a::after {
+    content: attr(data-label);
+    position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    white-space: nowrap; opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
   .rail a:hover::after { opacity: 1; }
   @media (max-width: 1180px) { .rail { display: none; } }
 
-  header.hero { text-align: center; padding: 128px 24px 64px; }
-  .badge { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--line-strong); background: rgba(124,156,255,0.06); backdrop-filter: blur(10px); padding: 7px 16px; border-radius: 999px; margin-bottom: 24px; }
+  /* ===== Hero ===== */
+  header.hero { text-align: center; padding: 130px 24px 70px; position: relative; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    background: rgba(124,156,255,0.06);
+    backdrop-filter: blur(10px);
+    padding: 7px 16px; border-radius: 999px; margin-bottom: 26px;
+  }
   .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
-  h1 { font-size: clamp(40px, 8vw, 76px); line-height: 1.02; margin: 0 0 18px; font-weight: 900; letter-spacing: -0.035em; }
-  h1 .grad { background: linear-gradient(100deg, var(--accent) 0%, var(--violet) 45%, var(--accent-2) 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; }
+  h1 {
+    font-size: clamp(40px, 8vw, 76px); line-height: 1.02; margin: 0 0 20px;
+    font-weight: 900; letter-spacing: -0.035em;
+  }
+  h1 .grad {
+    background: linear-gradient(100deg, var(--accent) 0%, var(--violet) 45%, var(--accent-2) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
   @keyframes shimmer { to { background-position: 200% center; } }
-  .lede { max-width: 600px; margin: 0 auto; color: var(--muted); font-size: 19px; }
-  .meta-row { margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-  .chip { font-size: 13px; color: var(--muted); background: var(--panel); backdrop-filter: blur(12px); border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px; }
+  .lede { max-width: 660px; margin: 0 auto; color: var(--muted); font-size: 19px; }
+  .meta-row { margin-top: 34px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .chip {
+    font-size: 13px; color: var(--muted);
+    background: var(--panel); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px;
+  }
   .chip b { color: var(--text); font-weight: 600; }
-  .scroll-cue { margin-top: 50px; color: var(--muted); font-size: 12px; letter-spacing:.2em; text-transform:uppercase; }
-  .scroll-cue span { display:block; margin: 10px auto 0; width: 1px; height: 34px; background: linear-gradient(var(--accent), transparent); animation: cue 1.8s ease-in-out infinite; }
+  .scroll-cue { margin-top: 56px; color: var(--muted); font-size: 12px; letter-spacing:.2em; text-transform:uppercase; }
+  .scroll-cue span { display:block; margin: 10px auto 0; width: 1px; height: 36px; background: linear-gradient(var(--accent), transparent); animation: cue 1.8s ease-in-out infinite; }
   @keyframes cue { 0%,100%{opacity:.3; transform:scaleY(.6);} 50%{opacity:1; transform:scaleY(1);} }
 
-  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .65s cubic-bezier(.2,.8,.2,1), transform .65s cubic-bezier(.2,.8,.2,1); }
+  /* ===== Reveal animation ===== */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
   .reveal.in { opacity: 1; transform: none; }
 
-  section { margin-top: 84px; scroll-margin-top: 40px; }
-  .eyebrow { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent-2); margin: 0 0 8px; font-weight: 700; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .sec-title { font-size: clamp(23px, 4vw, 30px); font-weight: 800; margin: 0 0 16px; letter-spacing: -0.02em; }
-  .sec-title .alias { color: var(--violet); }
-  p { margin: 0 0 14px; }
-  .hint { font-size: 12.5px; color: var(--muted); margin: -4px 0 14px; opacity: .85; }
+  /* ===== Sections ===== */
+  section { margin-top: 92px; scroll-margin-top: 40px; }
+  .eyebrow { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent-2); margin: 0 0 8px; font-weight: 700; }
+  .sec-title { font-size: clamp(24px, 4vw, 32px); font-weight: 800; margin: 0 0 22px; letter-spacing: -0.02em; }
+  p { margin: 0 0 16px; }
 
-  .card { background: var(--panel); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px; position: relative; overflow: hidden; transition: transform .4s cubic-bezier(.2,.8,.2,1), border-color .4s; }
+  /* ===== Glass cards ===== */
+  .card {
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px 28px; margin-bottom: 16px;
+    position: relative; overflow: hidden;
+    transition: transform .4s cubic-bezier(.2,.8,.2,1), border-color .4s;
+  }
   .card:hover { transform: translateY(-4px); border-color: var(--line-strong); }
-  .card h3 { margin: 0 0 6px; font-size: 17px; display:flex; align-items:center; gap:10px; }
-  .card .ico { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none; }
-  .card p { font-size: 14.5px; color: var(--muted); margin: 0; }
+  .card h3 { margin: 0 0 8px; font-size: 18px; display:flex; align-items:center; gap:10px; }
+  .card .ico { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 16px; flex: none; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
-  .card.glow-blue::before, .card.glow-green::before, .card.glow-warn::before { content:""; position:absolute; top:0; left:0; width:100%; height:3px; }
+  .card.glow-blue::before, .card.glow-green::before, .card.glow-warn::before {
+    content:""; position:absolute; top:0; left:0; width:100%; height:3px;
+  }
   .card.glow-blue::before { background: linear-gradient(90deg, var(--accent), transparent); }
   .card.glow-green::before { background: linear-gradient(90deg, var(--accent-2), transparent); }
   .card.glow-warn::before { background: linear-gradient(90deg, var(--warn), transparent); }
@@ -81,72 +154,57 @@
   .ico.green { background: rgba(92,224,168,.16); color: var(--accent-2); }
   .ico.warn { background: rgba(255,200,121,.16); color: var(--warn); }
 
-  .gate { background: linear-gradient(135deg, rgba(255,200,121,.10), rgba(240,140,208,.05)); border: 1px solid rgba(255,200,121,.25); border-radius: var(--radius); padding: 22px 24px; }
-  .gate .tag { color: var(--warn); font-weight: 800; font-size: 13px; letter-spacing: .12em; }
-  .gate p { margin: 10px 0 0; font-size: 15px; }
+  /* ===== Gate callout ===== */
+  .gate {
+    background: linear-gradient(135deg, rgba(255,200,121,.10), rgba(240,140,208,.05));
+    border: 1px solid rgba(255,200,121,.25);
+    border-radius: var(--radius); padding: 26px 28px;
+  }
+  .gate .tag { color: var(--warn); font-weight: 800; font-size: 13px; letter-spacing: .12em; display:flex; align-items:center; gap:8px; }
 
+  /* ===== Table ===== */
   .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; backdrop-filter: blur(12px); background: var(--panel); }
-  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
-  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); }
   th { background: rgba(255,255,255,0.03); color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
   tr:last-child td { border-bottom: none; }
   tbody tr { transition: background .25s; }
   tbody tr:hover { background: rgba(124,156,255,0.05); }
   td code, .codepill { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); background: rgba(124,156,255,.1); padding: 3px 8px; border-radius: 7px; }
 
-  svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; display: block; }
-  .prio { font-size: 11px; font-weight: 800; letter-spacing: .04em; padding: 4px 11px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
-  .prio-1 { color: var(--red); border-color: rgba(255,133,133,.4); background: rgba(255,133,133,.1); }
-  .prio-2 { color: var(--warn); border-color: rgba(255,200,121,.4); background: rgba(255,200,121,.1); }
-  .prio-3 { color: var(--accent-2); border-color: rgba(92,224,168,.4); background: rgba(92,224,168,.1); }
-
-  .legend { display: flex; flex-wrap: wrap; gap: 12px 22px; margin: 18px 0 8px; padding: 16px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); backdrop-filter: blur(12px); }
-  .legend .row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
-  .legend .row b { color: var(--text); font-weight: 600; }
-
+  /* ===== Timeline ===== */
   .timeline { position: relative; margin-top: 12px; padding-left: 6px; }
-  .timeline::before { content:""; position:absolute; left: 28px; top: 14px; bottom: 14px; width: 2px; background: rgba(255,255,255,0.1); }
-  .timeline .fill { position:absolute; left: 28px; top: 14px; width: 2px; background: linear-gradient(var(--accent), var(--violet), var(--accent-2)); height: 0; transition: height .15s linear; border-radius: 2px; box-shadow: 0 0 12px rgba(124,156,255,.5); }
-  .step { position: relative; padding: 0 0 28px 78px; }
-  .step .num { position: absolute; left: 0; top: 0; width: 46px; height: 46px; border-radius: 13px; background: var(--bg-2); border: 2px solid var(--line-strong); color: var(--muted); display: grid; place-items: center; z-index: 1; transition: all .5s cubic-bezier(.2,.8,.2,1); }
-  .step.p1 .num { color: var(--red); } .step.p2 .num { color: var(--warn); } .step.p3 .num { color: var(--accent-2); }
-  .step.in.p1 .num { border-color: var(--red); box-shadow: 0 0 0 5px rgba(255,133,133,.13); }
-  .step.in.p2 .num { border-color: var(--warn); box-shadow: 0 0 0 5px rgba(255,200,121,.13); }
-  .step.in.p3 .num { border-color: var(--accent-2); box-shadow: 0 0 0 5px rgba(92,224,168,.13); }
-  .step-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
-  .step-n { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-  .step h4 { margin: 6px 0 4px; font-size: 17px; font-weight: 700; }
-  .step h4 .alias { color: var(--violet); font-weight: 800; }
-  .step h4 .fn { color: var(--text); font-weight: 600; }
-  .step .agent { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--accent); background: rgba(124,156,255,.1); padding: 2px 8px; border-radius: 6px; }
-  .step p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; }
+  .timeline::before { content:""; position:absolute; left: 26px; top: 14px; bottom: 14px; width: 2px; background: rgba(255,255,255,0.1); }
+  .timeline .fill { position:absolute; left: 26px; top: 14px; width: 2px; background: linear-gradient(var(--accent), var(--violet), var(--accent-2)); height: 0; transition: height .15s linear; border-radius: 2px; box-shadow: 0 0 12px rgba(124,156,255,.5); }
+  .step { position: relative; padding: 0 0 30px 74px; }
+  .step .num {
+    position: absolute; left: 0; top: 0; width: 42px; height: 42px; border-radius: 50%;
+    background: var(--bg-2); border: 2px solid var(--line-strong); color: var(--muted);
+    font-weight: 800; display: grid; place-items: center; font-size: 15px; z-index: 1;
+    transition: all .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .step.in .num { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 5px rgba(124,156,255,.12); }
+  .step h4 { margin: 8px 0 5px; font-size: 17px; font-weight: 700; }
+  .step h4 .agent { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); background: rgba(124,156,255,.1); padding: 2px 8px; border-radius: 6px; margin-left: 6px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  .step.pause .num { border-color: var(--warn); color: var(--warn); }
+  .step.pause.in .num { box-shadow: 0 0 0 5px rgba(255,200,121,.14); }
 
-  /* expandable detail */
-  .more { margin-top: 10px; }
-  .more > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--accent); user-select: none; padding: 4px 0; }
-  .more > summary::-webkit-details-marker { display: none; }
-  .more > summary::after { content: "▾"; font-size: 10px; transition: transform .25s; }
-  .more[open] > summary::after { transform: rotate(180deg); }
-  .more-body { margin-top: 10px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,0.02); animation: fade .35s ease; }
-  @keyframes fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-  .more-body .ln { margin: 0 0 9px; font-size: 13.5px; color: var(--muted); line-height: 1.55; }
-  .more-body .ln:last-child { margin-bottom: 0; }
-  .more-body .ln b { color: var(--text); font-weight: 600; }
-  .more-body .k { display: inline-block; min-width: 52px; color: var(--violet); font-weight: 700; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; margin-right: 6px; }
-  .more-body code { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--accent); background: rgba(124,156,255,.1); padding: 1px 6px; border-radius: 5px; }
-
+  /* ===== Rules ===== */
   ul.rules { list-style: none; padding: 0; margin: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; backdrop-filter: blur(12px); background: var(--panel); }
-  ul.rules li { padding: 14px 20px 14px 50px; position: relative; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 14.5px; transition: background .25s; }
+  ul.rules li { padding: 16px 20px 16px 52px; position: relative; border-bottom: 1px solid var(--line); color: var(--muted); transition: background .25s; }
   ul.rules li:hover { background: rgba(92,224,168,0.05); }
   ul.rules li:last-child { border-bottom: none; }
-  ul.rules li::before { content: "✓"; position: absolute; left: 20px; top: 14px; color: var(--accent-2); font-weight: 800; }
+  ul.rules li::before { content: "✓"; position: absolute; left: 20px; top: 16px; color: var(--accent-2); font-weight: 800; }
   ul.rules li b { color: var(--text); }
 
-  footer { margin-top: 90px; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 30px; }
+  footer { margin-top: 100px; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 32px; }
   footer code { color: var(--accent); font-family: "JetBrains Mono", monospace; }
-  footer .cast { margin-top: 8px; font-size: 12px; opacity: .8; }
 
-  @media (prefers-reduced-motion: reduce) { .mesh, h1 .grad, .badge .dot, .scroll-cue span, .more-body { animation: none; } .reveal { opacity: 1; transform: none; transition: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .mesh, h1 .grad, .badge .dot, .scroll-cue span { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -154,68 +212,67 @@
 <div class="grain"></div>
 
 <nav class="rail">
-  <a href="#model" data-label="Model"></a>
-  <a href="#gate" data-label="Gate"></a>
-  <a href="#pipeline" data-label="The crew"></a>
-  <a href="#review" data-label="Review"></a>
+  <a href="#overview" data-label="Overview"></a>
+  <a href="#model" data-label="Operating model"></a>
+  <a href="#gate" data-label="Step 0 · Gate"></a>
+  <a href="#pipeline" data-label="Pipeline"></a>
+  <a href="#review" data-label="Review gate"></a>
   <a href="#flow" data-label="Flow chart"></a>
   <a href="#report" data-label="Report"></a>
-  <a href="#rules" data-label="Rules"></a>
+  <a href="#rules" data-label="Standing rules"></a>
 </nav>
 
 <header class="hero">
-  <span class="badge"><span class="dot"></span>Engineering 2.0 · v6.0 · Leo Edition</span>
+  <span class="badge"><span class="dot"></span>Engineering 2.0 · v6.0</span>
   <h1>pre-iPRD<br><span class="grad">Design Audit Agent</span></h1>
-  <p class="lede">12 sub-agents. One fixed order. Audits, fixes &amp; documents a Figma flow before engineering ever sees it.</p>
+  <p class="lede">An orchestrator that drives twelve specialised sub-agents in a fixed order to audit, fix, and document a Figma flow before it ever reaches engineering.</p>
   <div class="meta-row">
     <span class="chip"><b>Trigger</b> · Figma link + “pre iprd”</span>
-    <span class="chip"><b>Pauses</b> · only 3</span>
-    <span class="chip"><b>Codenames</b> · Leo (2023) 🦁</span>
+    <span class="chip"><b>Pauses</b> · only 3 permitted</span>
+    <span class="chip"><b>Writes</b> · main session only</span>
   </div>
   <div class="scroll-cue">Scroll<span></span></div>
 </header>
 
 <div class="wrap">
 
+  <section id="overview" class="reveal">
+    <p class="eyebrow">What it is</p>
+    <div class="sec-title">An orchestrator, not a lone auditor</div>
+    <p>The pre-iPRD Design Audit Agent does not do the audit work alone. It drives a pipeline of twelve specialised sub-agents in a fixed order. It is triggered whenever a designer pastes a Figma page or section link and asks for a “pre iprd” review in any phrasing — the pasted link by itself is a valid invocation. Once a single platform-confirmation gate is cleared, the agent runs the whole pipeline autonomously: no further questions, nothing skipped, no frame ever deleted, no API endpoint or screen ever invented, and every change written into Figma verified by reading it back. Throughout, it conforms strictly to one confirmed master design system and nothing else.</p>
+  </section>
+
   <section id="model" class="reveal">
-    <p class="eyebrow">How it runs</p>
+    <p class="eyebrow">How it operates</p>
     <div class="sec-title">Analyst + main-hands</div>
-    <p style="color:var(--muted)">The <span class="codepill">use_figma</span> write channel works <b style="color:var(--text)">only from the main session</b>. So:</p>
+    <p>The Figma <i>write</i> channel — the <span class="codepill">use_figma</span> plugin — is reachable <b>only from the main orchestrating session</b>. A write attempted from a spawned sub-agent serialises into plain text and halts the run. So the pipeline splits into two roles:</p>
     <div class="two-col">
       <div class="card glow-blue">
-        <h3><span class="ico blue"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></span>Sub-agents — analysts</h3>
-        <p>Read Figma, return a fix-plan. Never write.</p>
+        <h3><span class="ico blue">⌕</span>Sub-agents — analysts</h3>
+        <p style="color:var(--muted);margin:0">Each is spawned with the file key, node id, and the relevant outputs from earlier steps. It <b style="color:var(--text)">reads</b> the design and returns findings and a fix-plan as structured text. It never writes.</p>
       </div>
       <div class="card glow-green">
-        <h3><span class="ico green"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>Main session — the hands</h3>
-        <p>Applies every write, then verifies by re-read.</p>
+        <h3><span class="ico green">✎</span>Main session — the hands</h3>
+        <p style="color:var(--muted);margin:0">Takes each plan and applies every Figma write it calls for, then <b style="color:var(--text)">verifies each write by an independent re-read</b>. If a sub-agent can’t even read Figma, the orchestrator runs its spec inline instead.</p>
       </div>
     </div>
   </section>
 
   <section id="gate" class="reveal">
-    <p class="eyebrow">Step 0 <span class="prio prio-1">P1 · Critical</span></p>
-    <div class="sec-title"><span class="alias">Joshy</span> — the only gate</div>
+    <p class="eyebrow">Step 0</p>
+    <div class="sec-title">Platform confirmation — the only gate</div>
     <div class="gate">
-      <span class="tag">⛔ WAITS FOR YOUR CONFIRM</span>
-      <p><span class="codepill">confirmation-agent</span> reads every frame, recommends the platform → you confirm → that locks the <b>one</b> master design system the whole run obeys.</p>
-      <details class="more">
-        <summary>How it works</summary>
-        <div class="more-body">
-          <p class="ln"><span class="k">Reads</span> Parses file key + node id from the URL, pulls the section metadata (often 100–600K chars → saved to a file &amp; parsed) and inspects <b>every</b> screen frame.</p>
-          <p class="ln"><span class="k">Builds</span> A full frame inventory — <code># | frame | state | node id</code> — then infers the platform from naming slots, content, density &amp; components.</p>
-          <p class="ln"><span class="k">Returns</span> One recommended platform + the exact master DS it maps to, and whether that DS is subscribed. Read-only — it stops at the recommendation; <b>you</b> confirm.</p>
-        </div>
-      </details>
+      <span class="tag">⛔ PAUSE FOR USER CONFIRMATION</span>
+      <p style="margin:12px 0 0">The orchestrator spawns the <span class="codepill">confirmation-agent</span>, which parses the URL, reads every frame, builds the frame inventory, and recommends the target platform. The orchestrator presents this and <b>waits for the user to confirm</b>. That confirmation selects the <b>one</b> master design system the rest of the run obeys — not a loose colour library, not a UI kit, and any other subscribed library is flagged as out of place.</p>
     </div>
-    <div class="table-wrap" style="margin-top:16px">
+    <div class="table-wrap" style="margin-top:18px">
       <table>
         <thead><tr><th>Platform</th><th>Master design system</th></tr></thead>
         <tbody>
           <tr><td>Admin</td><td><code>Master Design System</code></td></tr>
           <tr><td>Partner App</td><td><code>Oro Partner App – Master</code></td></tr>
           <tr><td>Customer / Cx App</td><td><code>Oro Safe – Customer WebApp</code></td></tr>
-          <tr><td>Website / Landing</td><td><code>⚱️ Oro Money Landing</code></td></tr>
+          <tr><td>Website / Money Landing</td><td><code>⚱️ Oro Money Landing</code></td></tr>
           <tr><td>Generic web</td><td><code>Web Master Design System</code></td></tr>
           <tr><td>Generic mobile</td><td><code>Mobile Master Design system</code></td></tr>
         </tbody>
@@ -224,194 +281,117 @@
   </section>
 
   <section id="pipeline" class="reveal">
-    <p class="eyebrow">The crew · 9 steps</p>
-    <div class="sec-title">Spawn → apply → verify</div>
-    <p class="hint">↓ Tap any agent for how it actually works.</p>
-    <div class="legend">
-      <div class="row"><span class="prio prio-1">P1</span> <span><b>Critical</b> — a miss breaks the run</span></div>
-      <div class="row"><span class="prio prio-2">P2</span> <span><b>High</b> — engineering reads it</span></div>
-      <div class="row"><span class="prio prio-3">P3</span> <span><b>Supporting</b> — scaffolding &amp; aids</span></div>
-    </div>
+    <p class="eyebrow">The pipeline</p>
+    <div class="sec-title">Spawn analyst → apply writes → verify</div>
+    <p style="color:var(--muted)">After the gate, the orchestrator works through nine build-and-fix sub-agents in strict sequence. For each: spawn the agent, receive the plan, apply the writes, verify by re-read.</p>
 
     <div class="timeline">
       <div class="fill" id="tlfill"></div>
-
-      <div class="step p3"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v5M9.5 14.5h5"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 1</span><span class="prio prio-3">P3</span></div>
-        <h4><span class="alias">Parthiban</span> <span class="fn">· File setup</span></h4>
-        <p><span class="agent">file-creator-agent</span> — RfE page, playground, thumbnail, MDS variables imported.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Checks</span> The two convention pages exist — <code>Design playground</code> (#0) + <code>Ready for engineering</code> (#1) — a thumbnail is set, the master DS is subscribed, and no polluting library (Oro Colors / UI kit) is enabled.</p>
-          <p class="ln"><span class="k">How</span> Renames the design page (page rename is allowed; file rename isn't), builds a 1920×1080 branded <code>Thumbnail</code> (logo, big title, corner brackets, wave), and imports MDS variable collections so downstream agents can bind tokens.</p>
-          <p class="ln"><span class="k">Flags</span> “Set as thumbnail” and any file rename are manual one-click steps the API can't do.</p>
-        </div></details>
+      <div class="step"><div class="num">1</div>
+        <h4>File setup <span class="agent">file-creator-agent</span></h4>
+        <p>Rename the design page to “Ready for engineering”, create a separate “Design playground” page and a blue desktop thumbnail set as the file thumbnail, and import the master design system’s variable collections. (The file rename itself is flagged as a manual step.)</p>
       </div>
-
-      <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 3 12.2V5a2 2 0 0 1 2-2h7.2a2 2 0 0 1 1.4.6l7 7a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 2</span><span class="prio prio-2">P2</span></div>
-        <h4><span class="alias">Napoleon</span> <span class="fn">· Frame naming</span></h4>
-        <p><span class="agent">file-renamer-agent</span> — canonical name on every frame. <code>Untitled</code> = blocker.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Checks</span> Frames off the pattern, duplicate names, <code>Untitled</code> (hard blocker), and platform slots that don't match the confirmed platform.</p>
-          <p class="ln"><span class="k">How</span> Renames each to <code>platform/area/feature/module/screen--state</code> — inferring area/feature/module from content + flow position, and <code>--state</code> from what the frame shows. Uniqueness comes from the distinguishing state, never a numeric <code>-2</code>.</p>
-          <p class="ln"><span class="k">Scope</span> Names only — never moves, restyles, or regroups (that's Siddharth &amp; Leo Das).</p>
-        </div></details>
+      <div class="step"><div class="num">2</div>
+        <h4>Frame naming <span class="agent">file-renamer-agent</span></h4>
+        <p>Rename every frame to the canonical convention — platform / area / feature / module / screen — state — ensuring each name is unique.</p>
       </div>
-
-      <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="18" rx="1.5"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 3</span><span class="prio prio-2">P2</span></div>
-        <h4><span class="alias">Siddharth</span> <span class="fn">· Sectioning</span></h4>
-        <p><span class="agent">section-splitter</span> — one section per sub-flow; top-aligned, padded, zero spill.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Checks</span> Loose frames, same-flow screens scattered across the canvas, misalignment, inconsistent gaps, missing section padding.</p>
-          <p class="ln"><span class="k">How</span> One <code>createSection</code> per sub-flow → reparent the frames in → set each child's x/y in section-local coords with ~100px top padding, a shared baseline, and bottom padding. Gaps snap to the DS spacing scale.</p>
-          <p class="ln"><span class="k">Watch</span> Sections don't auto-grow and child coords are section-local; removing a section deletes its children, so it reparents first. Verifies <code>spill === 0</code> by re-read.</p>
-        </div></details>
+      <div class="step"><div class="num">3</div>
+        <h4>Sectioning <span class="agent">section-splitter</span></h4>
+        <p>Create one Figma section per sub-flow, reparent loose frames into them, top-align and pad every screen per the section recipe, and confirm no frame spills outside its section.</p>
       </div>
-
-      <div class="step p1"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 6-10 6-10z"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 4</span><span class="prio prio-1">P1</span></div>
-        <h4><span class="alias">Leo Das 🦁</span> <span class="fn">· Token conformance</span></h4>
-        <p><span class="agent">token-matcher</span> — snaps values to tokens, binds vars, sets the mode. No exceptions.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Checks</span> Hardcoded colours, text not on an MDS style (Manrope for Admin/Px · <b>DM Sans for User App</b>), off-spec shadows/scrims, off-scale spacing/radius, and the wrong variable mode for the platform.</p>
-          <p class="ln"><span class="k">How</span> Discovers the file's live MDS variables once &amp; caches them; <code>snap(v)</code> = nearest token within ±4px; binds colour/text/shadow/spacing vars and sets the platform mode on every frame.</p>
-          <p class="ln"><span class="k">Watch</span> Never recolours component instances, logos, or illustrations; flags anything with no near token; verifies by screenshot (a variable's first-mode hex can differ from the active mode). The single most important fix agent.</p>
-        </div></details>
+      <div class="step"><div class="num">4</div>
+        <h4>Token conformance <span class="agent">token-matcher</span></h4>
+        <p>Snap every numeric value to the nearest token within ±4px and bind colour, text, shadow and spacing variables; set the correct master-system mode; deliberately skip colours inside component instances.</p>
       </div>
-
-      <div class="step p1"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h9M4 18h6"/><path d="m15 16 2 2 4-4.5"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 5</span><span class="prio prio-1">P1</span></div>
-        <h4><span class="alias">Antony Das</span> <span class="fn">· Data correctness</span></h4>
-        <p><span class="agent">data-matcher</span> — kills fake data: dates, sums, signs, %, logic.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Checks</span> Placeholder/lorem, date ordering, currency realism, spelling, all cross-field math, interest %, +/− signs, logic contradictions, and the same value repeated down every list row.</p>
-          <p class="ln"><span class="k">How</span> Replaces with realistic, consistent content (one source customer reused across frames) and varies repeated rows — while preserving the row that cross-references a detail screen.</p>
-          <p class="ln"><span class="k">Watch</span> Never invents a business rule silently — realistic value + flag for human confirmation. Content/math/logic only; never touches tokens, layout, or naming.</p>
-        </div></details>
+      <div class="step"><div class="num">5</div>
+        <h4>Data correctness <span class="agent">data-matcher</span></h4>
+        <p>Replace placeholder and lorem text; correct dates, values, percentages, signs, sums and internal logic; flag unknown business rules rather than guessing.</p>
       </div>
-
-      <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 6</span><span class="prio prio-2">P2</span></div>
-        <h4><span class="alias">Harold Das</span> <span class="fn">· Edge &amp; missing states</span></h4>
-        <p><span class="agent">edge-finder</span> — clones loading/empty/error states. <b style="color:var(--warn)">⛔ Pauses for designer review.</b></p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Checks</span> For every flow — is each state present? Loading/skeleton, empty/zero-results, error, success/confirmation, plus skipped intermediate steps (e.g. a confirm before a destructive action).</p>
-          <p class="ln"><span class="k">How</span> Clones the nearest existing frame and assembles the state from existing library components (empty-state, skeleton, error banner, Retry/Cancel) — never raw-drawn — into a <code>🆕 Proposed — &lt;feature&gt;</code> section.</p>
-          <p class="ln"><span class="k">Gate</span> ⛔ Hard pause — the designer keeps/discards the proposals before the pipeline continues. No cloneable frame → it flags the gap instead of inventing a screen.</p>
-        </div></details>
+      <div class="step pause"><div class="num">6</div>
+        <h4>Edge &amp; missing states <span class="agent">edge-finder</span></h4>
+        <p>Clone the nearest existing frame into a “🆕 Proposed — &lt;feature&gt;” section and adapt it to the real missing state — never drawn from scratch. <b style="color:var(--warn)">⛔ Then the run pauses for the designer to review the proposed designs.</b></p>
       </div>
-
-      <div class="step p3"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><path d="m6.3 6.3 2.1 2.1M15.6 15.6l2.1 2.1M17.7 6.3l-2.1 2.1M8.4 15.6l-2.1 2.1"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 7</span><span class="prio prio-3">P3</span></div>
-        <h4><span class="alias">Sathya</span> <span class="fn">· Motion guide</span></h4>
-        <p><span class="agent">animation-interaction-suggester</span> — renders the interaction &amp; animation guide frame.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Specifies</span> Screen transitions, micro-interactions (press, toggle, success check, confetti), state-change feedback, gestures, and durations/easing — baseline <b>page 300ms · modal 250ms · skeleton 1.5s</b>.</p>
-          <p class="ln"><span class="k">How</span> Renders a new <code>🎞️ Interaction &amp; Animation Guide</code> frame above section 1; each entry = element · trigger · motion · duration/easing · purpose.</p>
-          <p class="ln"><span class="k">Scope</span> Advisory only — never touches the real screens; justifies any deviation from the defaults.</p>
-        </div></details>
+      <div class="step"><div class="num">7</div>
+        <h4>Motion guide <span class="agent">animation-interaction-suggester</span></h4>
+        <p>Render a dedicated “🎞️ Interaction &amp; Animation Guide” frame placed above the first section.</p>
       </div>
-
-      <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-4.2A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 8</span><span class="prio prio-2">P2</span></div>
-        <h4><span class="alias">Chinthamani</span> <span class="fn">· Annotations</span></h4>
-        <p><span class="agent">annotater-agent</span> — nav / API / QA notes on every frame. Unknown API = TBD.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Checks</span> Frames lacking handoff notes — nav (entry/exit + CTA targets), API (<code>METHOD /endpoint</code>), interaction (conditional visibility), open dev questions, and QA notes.</p>
-          <p class="ln"><span class="k">How</span> Writes the nav/API/interaction annotation plus a QA-notes block (what to test, expected vs edge) on every key frame, DS-styled.</p>
-          <p class="ln"><span class="k">Watch</span> Unknown endpoints → <code>⚠️ TBD</code>, never invented.</p>
-        </div></details>
+      <div class="step"><div class="num">8</div>
+        <h4>Annotations <span class="agent">annotater-agent</span></h4>
+        <p>Write navigation, API, interaction and QA annotations onto every key frame, marking any unknown API call as TBD rather than inventing it.</p>
       </div>
-
-      <div class="step p3"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M4 17V9a2 2 0 0 1 2-2h11"/><path d="m14 4 3 3-3 3"/><circle cx="6" cy="19" r="2"/></svg></div>
-        <div class="step-head"><span class="step-n">Step 9</span><span class="prio prio-3">P3</span></div>
-        <h4><span class="alias">The Hyena 🐾</span> <span class="fn">· Navigation map</span></h4>
-        <p><span class="agent">redirection-helper</span> — maps every touch-point → target. Flags dead-end CTAs.</p>
-        <details class="more"><summary>How it works</summary><div class="more-body">
-          <p class="ln"><span class="k">Collects</span> <b>Every</b> touch point — nav (buttons/rows/icons/tabs/chips/FABs), hyperlinks, filters (+ their in-place result), in-place actions (search/sort/refresh/export/toggle/expand/bulk/pagination), and back/cancel.</p>
-          <p class="ln"><span class="k">How</span> Renders a new <code>🧭 Redirections &amp; Navigation</code> frame above section 1 — a table grouped by source screen with a <b>Type</b> column → target screen or in-place result.</p>
-          <p class="ln"><span class="k">Watch</span> Dead-ends are flagged, never wired to a guessed screen.</p>
-        </div></details>
+      <div class="step"><div class="num">9</div>
+        <h4>Navigation map <span class="agent">redirection-helper</span></h4>
+        <p>Render a separate “🧭 Redirections &amp; Navigation” frame mapping every touch-point to its target, flagging any dead-end call-to-action.</p>
       </div>
     </div>
   </section>
 
   <section id="review" class="reveal">
-    <p class="eyebrow">Quality gate <span class="prio prio-1">P1 · Critical</span></p>
-    <div class="sec-title"><span class="alias">Badass</span> — loop until 100% green</div>
-    <p style="color:var(--muted)"><span class="codepill">reviewer</span> audits every frame on every dimension at once. Won't pass anything imperfect.</p>
-    <details class="more" style="margin-bottom:16px"><summary>How it works</summary><div class="more-body">
-      <p class="ln"><span class="k">Verifies</span> Per frame, ✅/❌ on 7 dimensions — naming, section &amp; alignment, tokens &amp; mode, data/math/logic, edge states, annotations &amp; QA, redirections — by actually reading frames + screenshots, not trusting an upstream “done”.</p>
-      <p class="ln"><span class="k">Routes</span> Any ❌ → <code>&lt;agent&gt; must re-run on frames [X, Y]</code>. The main loop re-runs exactly those agents on exactly those frames, then calls Badass again. Loops until 100% green.</p>
-      <p class="ln"><span class="k">Watch</span> Read-only — it never fixes anything itself, and a skipped dimension counts as a defect, not a pass.</p>
-    </div></details>
+    <p class="eyebrow">Quality gate</p>
+    <div class="sec-title">The reviewer — loop until 100% green</div>
+    <p>The orchestrator spawns the read-only <span class="codepill">reviewer</span>. It audits the design screen by screen and frame by frame across every dimension at once — naming, sectioning and alignment, tokens and mode, data, maths and logic, edge states, annotations and redirections — and returns a per-frame pass/fail scorecard.</p>
     <div class="two-col">
       <div class="card glow-green">
-        <h3><span class="ico green"><svg class="i" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg></span>All green</h3>
-        <p>→ on to the flow chart.</p>
+        <h3><span class="ico green">✓</span>All green</h3>
+        <p style="color:var(--muted);margin:0">The run proceeds to the flow chart.</p>
       </div>
       <div class="card glow-warn">
-        <h3><span class="ico warn"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></span>Any ❌</h3>
-        <p>Names the owning agent + exact frames → re-run → re-review. Loops till 100% green.</p>
+        <h3><span class="ico warn">↻</span>Any failure</h3>
+        <p style="color:var(--muted);margin:0">The reviewer names the exact owning agent and frames. The orchestrator re-spawns that agent on just those frames, re-applies the writes, and re-runs the reviewer. <b style="color:var(--text)">This loops until the scorecard is 100% green.</b> The flow chart is forbidden from running before then.</p>
       </div>
     </div>
   </section>
 
   <section id="flow" class="reveal">
-    <p class="eyebrow">Step 12 <span class="prio prio-3">P3</span></p>
-    <div class="sec-title"><span class="alias">Naa Ready</span> — the flow chart</div>
-    <p style="color:var(--muted)"><span class="codepill">user-flow-creator</span> returns the node/edge model; the chart is built in the main session — no crossing lines, API badges, DS-bound spacing. <b style="color:var(--text)">Only after green.</b></p>
-    <details class="more"><summary>How it works</summary><div class="more-body">
-      <p class="ln"><span class="k">Builds</span> From a node/edge data model at a <b>fixed node size (196×56)</b> — the trick that makes layout deterministic in a single pass (exact box known without a stale re-read).</p>
-      <p class="ln"><span class="k">Draws</span> Colour-coded sub-flow lanes, vector icon-chip per node, orthogonal connectors routed <b>behind</b> nodes (z-0), green ✓ / red ✕ branch badges, dark API pills, and a legend card. Spacing bound to <code>spacing/*</code> variables.</p>
-      <p class="ln"><span class="k">Self-check</span> <code>lineOverTile === 0</code>, <code>tileOverlap === 0</code>, crossings minimised, every screen present, parallel states drawn as parallel branches (never a false chain).</p>
-    </div></details>
+    <p class="eyebrow">Step 12</p>
+    <div class="sec-title">The flow chart — only after green</div>
+    <p>The orchestrator spawns the <span class="codepill">user-flow-creator</span>, which returns a node-and-edge data model plus a build spec. The chart is then built <b>in the main session</b> through the Figma write channel (it cannot be drawn from a sub-agent). The result is a modern, neat, interaction-level user-flow chart with no crossing lines, API badges on relevant edges, and spacing bound to design-system variables. Self-check: no connector line over a tile, no tile overlapping another, crossings minimised, and every screen present.</p>
   </section>
 
   <section id="report" class="reveal">
-    <p class="eyebrow">Step 13 <span class="prio prio-3">P3</span></p>
-    <div class="sec-title"><span class="alias">Leo’s Roar</span> — self-check &amp; report</div>
-    <p style="color:var(--muted)"><span class="codepill">self-check-reporter</span> runs the final pass → <b style="color:var(--text)">found · fixed · needs-human</b> → posts the bulletin to Slack <span class="codepill">#pre-iprd-test</span>.</p>
-    <details class="more"><summary>How it works</summary><div class="more-body">
-      <p class="ln"><span class="k">Verifies</span> Names unique (no Untitled), sections <code>spill === 0</code> + padded, tokens bound + correct mode, flow chart clean, and that Badass actually emitted GREEN.</p>
-      <p class="ln"><span class="k">Reports</span> Three buckets — Found · Fixed · Needs-a-human-call — with the owning role on each open item.</p>
-      <p class="ln"><span class="k">Posts</span> A text-only Slack bulletin to <code>#pre-iprd-test</code>: verdict + counts + skip rate, Fixed / Open-designer / Open-PO, and deliverable deep-links. Owners by role only, never images.</p>
-    </div></details>
+    <p class="eyebrow">Step 13</p>
+    <div class="sec-title">Self-check &amp; report</div>
+    <p>Finally the orchestrator spawns the <span class="codepill">self-check-reporter</span> (Figma-read + Slack). It runs the final verification pass — frame names, zero section spill and proper padding, master-system conformance, and a clean flow chart — and emits an audit report structured as <b>found · fixed · needs human call</b>. It then posts a bulletin to Slack <span class="codepill">#pre-iprd-test</span>: verdict, counts, skip rate, and deep-links to the deliverables — owners named by role only, in plain text, never as images.</p>
   </section>
 
   <section id="rules" class="reveal">
     <p class="eyebrow">Always true</p>
     <div class="sec-title">The standing rules</div>
     <ul class="rules">
-      <li><b>Sub-agents read; main session writes</b> — every write verified by re-read.</li>
-      <li><b>Flow chart runs only after a 100% green review.</b></li>
-      <li><b>No questions after Step 0.</b> Nothing skipped.</li>
-      <li><b>Frames never deleted</b> — hidden via <code>visible=false</code>; reparent before removing a section.</li>
-      <li><b>Endpoints &amp; screens never invented</b> — unknowns = TBD; missing screens cloned.</li>
-      <li><b>One master DS per run.</b> Only 3 pauses allowed.</li>
+      <li><b>Sub-agents analyse; the main session writes</b> — and verifies every write by reading it back (a read in the same call right after a create/move is stale, so it’s done separately).</li>
+      <li><b>The flow chart only runs after a fully green review.</b></li>
+      <li><b>No mid-run questions after Step 0</b>, and nothing may be skipped — a skipped or partial step counts as a defect.</li>
+      <li><b>Frames are never deleted</b> — they are hidden by setting them invisible; frames are reparented before any section is removed (removing a section deletes its children).</li>
+      <li><b>Endpoints and screens are never invented</b> — unknowns are marked TBD and missing screens are cloned, never drawn.</li>
+      <li><b>One master design system per run</b>, with only three permitted pauses: the platform confirm, a missing-master-system approval, and the edge-finder designer-review gate.</li>
     </ul>
   </section>
 
   <footer>
     pre-iPRD Design Audit Agent · v6.0 · source <code>~/.claude/agents/pre-iprd.md</code>
-    <div class="cast">Codenames are a playful nod to <i>Leo</i> (2023) — not official agent names. 🦁</div>
   </footer>
 
 </div>
 
 <script>
-  const io = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }); }, { threshold: 0.12 });
+  // Scroll reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.12 });
   document.querySelectorAll('.reveal, .step').forEach(el => io.observe(el));
 
+  // Timeline fill + active rail dot
   const fill = document.getElementById('tlfill');
   const timeline = document.querySelector('.timeline');
   const sections = [...document.querySelectorAll('section[id]')];
   const dots = [...document.querySelectorAll('.rail a')];
+
   function onScroll() {
     if (timeline && fill) {
       const r = timeline.getBoundingClientRect();
-      const passed = Math.min(Math.max(window.innerHeight * 0.5 - r.top, 0), r.height);
+      const vh = window.innerHeight;
+      const total = r.height;
+      const passed = Math.min(Math.max(vh * 0.5 - r.top, 0), total);
       fill.style.height = passed + 'px';
     }
     let activeIdx = 0;
