@@ -119,6 +119,12 @@
   .scroll-cue span { display:block; margin: 10px auto 0; width: 1px; height: 36px; background: linear-gradient(var(--accent), transparent); animation: cue 1.8s ease-in-out infinite; }
   @keyframes cue { 0%,100%{opacity:.3; transform:scaleY(.6);} 50%{opacity:1; transform:scaleY(1);} }
 
+  /* ===== CTA / button ===== */
+  .btn { display:inline-flex; align-items:center; gap:8px; white-space:nowrap; font-weight:700; font-size:15px; color:#0a0d13; background: linear-gradient(100deg, var(--accent), var(--accent-2)); padding: 14px 26px; border-radius: 12px; text-decoration:none; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; box-shadow: 0 8px 24px rgba(124,156,255,.22); }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(124,156,255,.34); }
+  .cta { display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; background: linear-gradient(135deg, rgba(124,156,255,.12), rgba(92,224,168,.08)); border:1px solid var(--line-strong); border-radius: var(--radius); padding: 32px 34px; backdrop-filter: blur(12px); }
+  .cta .eyebrow { margin-bottom: 6px; }
+
   /* ===== Reveal animation ===== */
   .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
   .reveal.in { opacity: 1; transform: none; }
@@ -219,6 +225,7 @@
   <a href="#review" data-label="Review gate"></a>
   <a href="#flow" data-label="Flow chart"></a>
   <a href="#report" data-label="Report"></a>
+  <a href="#output" data-label="Output"></a>
   <a href="#rules" data-label="Standing rules"></a>
 </nav>
 
@@ -231,6 +238,7 @@
     <span class="chip"><b>Pauses</b> · only 3, ever</span>
     <span class="chip"><b>Writes</b> · main session only</span>
   </div>
+  <div style="margin-top:30px"><a class="btn" href="https://www.figma.com/design/Juz0nWWrQMzsjBsNSYwtbi/Untitled?node-id=0-1" target="_blank" rel="noopener">See the agent output in Figma →</a></div>
   <div class="scroll-cue">Scroll<span></span></div>
 </header>
 
@@ -365,6 +373,17 @@
       <li><b>Nothing is invented</b> — unknowns are marked TBD, and missing screens are cloned, not drawn.</li>
       <li><b>One master design system per run</b>, with just three places it’s ever allowed to pause.</li>
     </ul>
+  </section>
+
+  <section id="output" class="reveal">
+    <div class="cta">
+      <div>
+        <p class="eyebrow">See it in action</p>
+        <div class="sec-title" style="margin:0 0 8px">Want to check the agent output?</div>
+        <p style="color:var(--muted);margin:0;max-width:520px">Open the live Figma file the agents produced — renamed frames, bound tokens, proposed edge states, handoff annotations and the flow chart, all in one place.</p>
+      </div>
+      <a class="btn" href="https://www.figma.com/design/Juz0nWWrQMzsjBsNSYwtbi/Untitled?node-id=0-1" target="_blank" rel="noopener">Open in Figma →</a>
+    </div>
   </section>
 
   <footer>
