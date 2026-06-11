@@ -64,6 +64,7 @@
   .sec-title { font-size: clamp(23px, 4vw, 30px); font-weight: 800; margin: 0 0 16px; letter-spacing: -0.02em; }
   .sec-title .alias { color: var(--violet); }
   p { margin: 0 0 14px; }
+  .hint { font-size: 12.5px; color: var(--muted); margin: -4px 0 14px; opacity: .85; }
 
   .card { background: var(--panel); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px; position: relative; overflow: hidden; transition: transform .4s cubic-bezier(.2,.8,.2,1), border-color .4s; }
   .card:hover { transform: translateY(-4px); border-color: var(--line-strong); }
@@ -120,6 +121,20 @@
   .step .agent { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--accent); background: rgba(124,156,255,.1); padding: 2px 8px; border-radius: 6px; }
   .step p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; }
 
+  /* expandable detail */
+  .more { margin-top: 10px; }
+  .more > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--accent); user-select: none; padding: 4px 0; }
+  .more > summary::-webkit-details-marker { display: none; }
+  .more > summary::after { content: "▾"; font-size: 10px; transition: transform .25s; }
+  .more[open] > summary::after { transform: rotate(180deg); }
+  .more-body { margin-top: 10px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,0.02); animation: fade .35s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .more-body .ln { margin: 0 0 9px; font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+  .more-body .ln:last-child { margin-bottom: 0; }
+  .more-body .ln b { color: var(--text); font-weight: 600; }
+  .more-body .k { display: inline-block; min-width: 52px; color: var(--violet); font-weight: 700; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; margin-right: 6px; }
+  .more-body code { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--accent); background: rgba(124,156,255,.1); padding: 1px 6px; border-radius: 5px; }
+
   ul.rules { list-style: none; padding: 0; margin: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; backdrop-filter: blur(12px); background: var(--panel); }
   ul.rules li { padding: 14px 20px 14px 50px; position: relative; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 14.5px; transition: background .25s; }
   ul.rules li:hover { background: rgba(92,224,168,0.05); }
@@ -131,7 +146,7 @@
   footer code { color: var(--accent); font-family: "JetBrains Mono", monospace; }
   footer .cast { margin-top: 8px; font-size: 12px; opacity: .8; }
 
-  @media (prefers-reduced-motion: reduce) { .mesh, h1 .grad, .badge .dot, .scroll-cue span { animation: none; } .reveal { opacity: 1; transform: none; transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .mesh, h1 .grad, .badge .dot, .scroll-cue span, .more-body { animation: none; } .reveal { opacity: 1; transform: none; transition: none; } }
 </style>
 </head>
 <body>
@@ -184,6 +199,14 @@
     <div class="gate">
       <span class="tag">⛔ WAITS FOR YOUR CONFIRM</span>
       <p><span class="codepill">confirmation-agent</span> reads every frame, recommends the platform → you confirm → that locks the <b>one</b> master design system the whole run obeys.</p>
+      <details class="more">
+        <summary>How it works</summary>
+        <div class="more-body">
+          <p class="ln"><span class="k">Reads</span> Parses file key + node id from the URL, pulls the section metadata (often 100–600K chars → saved to a file &amp; parsed) and inspects <b>every</b> screen frame.</p>
+          <p class="ln"><span class="k">Builds</span> A full frame inventory — <code># | frame | state | node id</code> — then infers the platform from naming slots, content, density &amp; components.</p>
+          <p class="ln"><span class="k">Returns</span> One recommended platform + the exact master DS it maps to, and whether that DS is subscribed. Read-only — it stops at the recommendation; <b>you</b> confirm.</p>
+        </div>
+      </details>
     </div>
     <div class="table-wrap" style="margin-top:16px">
       <table>
@@ -203,6 +226,7 @@
   <section id="pipeline" class="reveal">
     <p class="eyebrow">The crew · 9 steps</p>
     <div class="sec-title">Spawn → apply → verify</div>
+    <p class="hint">↓ Tap any agent for how it actually works.</p>
     <div class="legend">
       <div class="row"><span class="prio prio-1">P1</span> <span><b>Critical</b> — a miss breaks the run</span></div>
       <div class="row"><span class="prio prio-2">P2</span> <span><b>High</b> — engineering reads it</span></div>
@@ -216,54 +240,99 @@
         <div class="step-head"><span class="step-n">Step 1</span><span class="prio prio-3">P3</span></div>
         <h4><span class="alias">Parthiban</span> <span class="fn">· File setup</span></h4>
         <p><span class="agent">file-creator-agent</span> — RfE page, playground, thumbnail, MDS variables imported.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Checks</span> The two convention pages exist — <code>Design playground</code> (#0) + <code>Ready for engineering</code> (#1) — a thumbnail is set, the master DS is subscribed, and no polluting library (Oro Colors / UI kit) is enabled.</p>
+          <p class="ln"><span class="k">How</span> Renames the design page (page rename is allowed; file rename isn't), builds a 1920×1080 branded <code>Thumbnail</code> (logo, big title, corner brackets, wave), and imports MDS variable collections so downstream agents can bind tokens.</p>
+          <p class="ln"><span class="k">Flags</span> “Set as thumbnail” and any file rename are manual one-click steps the API can't do.</p>
+        </div></details>
       </div>
 
       <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 3 12.2V5a2 2 0 0 1 2-2h7.2a2 2 0 0 1 1.4.6l7 7a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div>
         <div class="step-head"><span class="step-n">Step 2</span><span class="prio prio-2">P2</span></div>
         <h4><span class="alias">Napoleon</span> <span class="fn">· Frame naming</span></h4>
         <p><span class="agent">file-renamer-agent</span> — canonical name on every frame. <code>Untitled</code> = blocker.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Checks</span> Frames off the pattern, duplicate names, <code>Untitled</code> (hard blocker), and platform slots that don't match the confirmed platform.</p>
+          <p class="ln"><span class="k">How</span> Renames each to <code>platform/area/feature/module/screen--state</code> — inferring area/feature/module from content + flow position, and <code>--state</code> from what the frame shows. Uniqueness comes from the distinguishing state, never a numeric <code>-2</code>.</p>
+          <p class="ln"><span class="k">Scope</span> Names only — never moves, restyles, or regroups (that's Siddharth &amp; Leo Das).</p>
+        </div></details>
       </div>
 
       <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="18" rx="1.5"/></svg></div>
         <div class="step-head"><span class="step-n">Step 3</span><span class="prio prio-2">P2</span></div>
         <h4><span class="alias">Siddharth</span> <span class="fn">· Sectioning</span></h4>
         <p><span class="agent">section-splitter</span> — one section per sub-flow; top-aligned, padded, zero spill.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Checks</span> Loose frames, same-flow screens scattered across the canvas, misalignment, inconsistent gaps, missing section padding.</p>
+          <p class="ln"><span class="k">How</span> One <code>createSection</code> per sub-flow → reparent the frames in → set each child's x/y in section-local coords with ~100px top padding, a shared baseline, and bottom padding. Gaps snap to the DS spacing scale.</p>
+          <p class="ln"><span class="k">Watch</span> Sections don't auto-grow and child coords are section-local; removing a section deletes its children, so it reparents first. Verifies <code>spill === 0</code> by re-read.</p>
+        </div></details>
       </div>
 
       <div class="step p1"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 6-10 6-10z"/></svg></div>
         <div class="step-head"><span class="step-n">Step 4</span><span class="prio prio-1">P1</span></div>
         <h4><span class="alias">Leo Das 🦁</span> <span class="fn">· Token conformance</span></h4>
         <p><span class="agent">token-matcher</span> — snaps values to tokens, binds vars, sets the mode. No exceptions.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Checks</span> Hardcoded colours, text not on an MDS style (Manrope for Admin/Px · <b>DM Sans for User App</b>), off-spec shadows/scrims, off-scale spacing/radius, and the wrong variable mode for the platform.</p>
+          <p class="ln"><span class="k">How</span> Discovers the file's live MDS variables once &amp; caches them; <code>snap(v)</code> = nearest token within ±4px; binds colour/text/shadow/spacing vars and sets the platform mode on every frame.</p>
+          <p class="ln"><span class="k">Watch</span> Never recolours component instances, logos, or illustrations; flags anything with no near token; verifies by screenshot (a variable's first-mode hex can differ from the active mode). The single most important fix agent.</p>
+        </div></details>
       </div>
 
       <div class="step p1"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h9M4 18h6"/><path d="m15 16 2 2 4-4.5"/></svg></div>
         <div class="step-head"><span class="step-n">Step 5</span><span class="prio prio-1">P1</span></div>
         <h4><span class="alias">Antony Das</span> <span class="fn">· Data correctness</span></h4>
         <p><span class="agent">data-matcher</span> — kills fake data: dates, sums, signs, %, logic.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Checks</span> Placeholder/lorem, date ordering, currency realism, spelling, all cross-field math, interest %, +/− signs, logic contradictions, and the same value repeated down every list row.</p>
+          <p class="ln"><span class="k">How</span> Replaces with realistic, consistent content (one source customer reused across frames) and varies repeated rows — while preserving the row that cross-references a detail screen.</p>
+          <p class="ln"><span class="k">Watch</span> Never invents a business rule silently — realistic value + flag for human confirmation. Content/math/logic only; never touches tokens, layout, or naming.</p>
+        </div></details>
       </div>
 
       <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div>
         <div class="step-head"><span class="step-n">Step 6</span><span class="prio prio-2">P2</span></div>
         <h4><span class="alias">Harold Das</span> <span class="fn">· Edge &amp; missing states</span></h4>
         <p><span class="agent">edge-finder</span> — clones loading/empty/error states. <b style="color:var(--warn)">⛔ Pauses for designer review.</b></p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Checks</span> For every flow — is each state present? Loading/skeleton, empty/zero-results, error, success/confirmation, plus skipped intermediate steps (e.g. a confirm before a destructive action).</p>
+          <p class="ln"><span class="k">How</span> Clones the nearest existing frame and assembles the state from existing library components (empty-state, skeleton, error banner, Retry/Cancel) — never raw-drawn — into a <code>🆕 Proposed — &lt;feature&gt;</code> section.</p>
+          <p class="ln"><span class="k">Gate</span> ⛔ Hard pause — the designer keeps/discards the proposals before the pipeline continues. No cloneable frame → it flags the gap instead of inventing a screen.</p>
+        </div></details>
       </div>
 
       <div class="step p3"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><path d="m6.3 6.3 2.1 2.1M15.6 15.6l2.1 2.1M17.7 6.3l-2.1 2.1M8.4 15.6l-2.1 2.1"/></svg></div>
         <div class="step-head"><span class="step-n">Step 7</span><span class="prio prio-3">P3</span></div>
         <h4><span class="alias">Sathya</span> <span class="fn">· Motion guide</span></h4>
         <p><span class="agent">animation-interaction-suggester</span> — renders the interaction &amp; animation guide frame.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Specifies</span> Screen transitions, micro-interactions (press, toggle, success check, confetti), state-change feedback, gestures, and durations/easing — baseline <b>page 300ms · modal 250ms · skeleton 1.5s</b>.</p>
+          <p class="ln"><span class="k">How</span> Renders a new <code>🎞️ Interaction &amp; Animation Guide</code> frame above section 1; each entry = element · trigger · motion · duration/easing · purpose.</p>
+          <p class="ln"><span class="k">Scope</span> Advisory only — never touches the real screens; justifies any deviation from the defaults.</p>
+        </div></details>
       </div>
 
       <div class="step p2"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-4.2A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg></div>
         <div class="step-head"><span class="step-n">Step 8</span><span class="prio prio-2">P2</span></div>
         <h4><span class="alias">Chinthamani</span> <span class="fn">· Annotations</span></h4>
         <p><span class="agent">annotater-agent</span> — nav / API / QA notes on every frame. Unknown API = TBD.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Checks</span> Frames lacking handoff notes — nav (entry/exit + CTA targets), API (<code>METHOD /endpoint</code>), interaction (conditional visibility), open dev questions, and QA notes.</p>
+          <p class="ln"><span class="k">How</span> Writes the nav/API/interaction annotation plus a QA-notes block (what to test, expected vs edge) on every key frame, DS-styled.</p>
+          <p class="ln"><span class="k">Watch</span> Unknown endpoints → <code>⚠️ TBD</code>, never invented.</p>
+        </div></details>
       </div>
 
       <div class="step p3"><div class="num"><svg class="i" viewBox="0 0 24 24"><path d="M4 17V9a2 2 0 0 1 2-2h11"/><path d="m14 4 3 3-3 3"/><circle cx="6" cy="19" r="2"/></svg></div>
         <div class="step-head"><span class="step-n">Step 9</span><span class="prio prio-3">P3</span></div>
         <h4><span class="alias">The Hyena 🐾</span> <span class="fn">· Navigation map</span></h4>
         <p><span class="agent">redirection-helper</span> — maps every touch-point → target. Flags dead-end CTAs.</p>
+        <details class="more"><summary>How it works</summary><div class="more-body">
+          <p class="ln"><span class="k">Collects</span> <b>Every</b> touch point — nav (buttons/rows/icons/tabs/chips/FABs), hyperlinks, filters (+ their in-place result), in-place actions (search/sort/refresh/export/toggle/expand/bulk/pagination), and back/cancel.</p>
+          <p class="ln"><span class="k">How</span> Renders a new <code>🧭 Redirections &amp; Navigation</code> frame above section 1 — a table grouped by source screen with a <b>Type</b> column → target screen or in-place result.</p>
+          <p class="ln"><span class="k">Watch</span> Dead-ends are flagged, never wired to a guessed screen.</p>
+        </div></details>
       </div>
     </div>
   </section>
@@ -272,6 +341,11 @@
     <p class="eyebrow">Quality gate <span class="prio prio-1">P1 · Critical</span></p>
     <div class="sec-title"><span class="alias">Badass</span> — loop until 100% green</div>
     <p style="color:var(--muted)"><span class="codepill">reviewer</span> audits every frame on every dimension at once. Won't pass anything imperfect.</p>
+    <details class="more" style="margin-bottom:16px"><summary>How it works</summary><div class="more-body">
+      <p class="ln"><span class="k">Verifies</span> Per frame, ✅/❌ on 7 dimensions — naming, section &amp; alignment, tokens &amp; mode, data/math/logic, edge states, annotations &amp; QA, redirections — by actually reading frames + screenshots, not trusting an upstream “done”.</p>
+      <p class="ln"><span class="k">Routes</span> Any ❌ → <code>&lt;agent&gt; must re-run on frames [X, Y]</code>. The main loop re-runs exactly those agents on exactly those frames, then calls Badass again. Loops until 100% green.</p>
+      <p class="ln"><span class="k">Watch</span> Read-only — it never fixes anything itself, and a skipped dimension counts as a defect, not a pass.</p>
+    </div></details>
     <div class="two-col">
       <div class="card glow-green">
         <h3><span class="ico green"><svg class="i" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg></span>All green</h3>
@@ -288,12 +362,22 @@
     <p class="eyebrow">Step 12 <span class="prio prio-3">P3</span></p>
     <div class="sec-title"><span class="alias">Naa Ready</span> — the flow chart</div>
     <p style="color:var(--muted)"><span class="codepill">user-flow-creator</span> returns the node/edge model; the chart is built in the main session — no crossing lines, API badges, DS-bound spacing. <b style="color:var(--text)">Only after green.</b></p>
+    <details class="more"><summary>How it works</summary><div class="more-body">
+      <p class="ln"><span class="k">Builds</span> From a node/edge data model at a <b>fixed node size (196×56)</b> — the trick that makes layout deterministic in a single pass (exact box known without a stale re-read).</p>
+      <p class="ln"><span class="k">Draws</span> Colour-coded sub-flow lanes, vector icon-chip per node, orthogonal connectors routed <b>behind</b> nodes (z-0), green ✓ / red ✕ branch badges, dark API pills, and a legend card. Spacing bound to <code>spacing/*</code> variables.</p>
+      <p class="ln"><span class="k">Self-check</span> <code>lineOverTile === 0</code>, <code>tileOverlap === 0</code>, crossings minimised, every screen present, parallel states drawn as parallel branches (never a false chain).</p>
+    </div></details>
   </section>
 
   <section id="report" class="reveal">
     <p class="eyebrow">Step 13 <span class="prio prio-3">P3</span></p>
     <div class="sec-title"><span class="alias">Leo’s Roar</span> — self-check &amp; report</div>
     <p style="color:var(--muted)"><span class="codepill">self-check-reporter</span> runs the final pass → <b style="color:var(--text)">found · fixed · needs-human</b> → posts the bulletin to Slack <span class="codepill">#pre-iprd-test</span>.</p>
+    <details class="more"><summary>How it works</summary><div class="more-body">
+      <p class="ln"><span class="k">Verifies</span> Names unique (no Untitled), sections <code>spill === 0</code> + padded, tokens bound + correct mode, flow chart clean, and that Badass actually emitted GREEN.</p>
+      <p class="ln"><span class="k">Reports</span> Three buckets — Found · Fixed · Needs-a-human-call — with the owning role on each open item.</p>
+      <p class="ln"><span class="k">Posts</span> A text-only Slack bulletin to <code>#pre-iprd-test</code>: verdict + counts + skip rate, Fixed / Open-designer / Open-PO, and deliverable deep-links. Owners by role only, never images.</p>
+    </div></details>
   </section>
 
   <section id="rules" class="reveal">
